@@ -6,7 +6,7 @@
 	<name>Armedia JMeter Gherkin Plugin</name>
 	<description>A plugin for JMeter to run Gherkin-language stories and scenarios</description>
 	<groupId>com.armedia.commons</groupId>
-	<artifactId>jmeter-gherkin-plugin</artifactId>
+	<artifactId>jmeter-plugins-gherkin</artifactId>
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
 	<inceptionYear>2020</inceptionYear>
@@ -269,7 +269,7 @@
 					<artifactId>maven-shade-plugin</artifactId>
 					<version>3.2.1</version>
 					<configuration>
-						<finalName>${project.artifactId}-${project.version}${build.number}-plugin</finalName>
+						<!-- <finalName>${project.artifactId}-${project.version}${build.number}-plugin</finalName> -->
 						<createSourcesJar>true</createSourcesJar>
 						<shadedSourcesContent>true</shadedSourcesContent>
 						<createDependencyReducedPom>false</createDependencyReducedPom>
