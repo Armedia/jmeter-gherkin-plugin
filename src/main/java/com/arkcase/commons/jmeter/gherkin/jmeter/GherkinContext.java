@@ -4,22 +4,22 @@
  * %%
  * Copyright (C) 2020 Armedia, LLC
  * %%
- * This file is part of the ArkCase software. 
- * 
- * If the software was purchased under a paid ArkCase license, the terms of 
- * the paid license agreement will prevail.  Otherwise, the software is 
+ * This file is part of the ArkCase software.
+ *
+ * If the software was purchased under a paid ArkCase license, the terms of
+ * the paid license agreement will prevail.  Otherwise, the software is
  * provided under the following open source license terms:
- * 
+ *
  * ArkCase is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *  
+ *
  * ArkCase is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -27,7 +27,12 @@
 package com.arkcase.commons.jmeter.gherkin.jmeter;
 
 import java.io.Closeable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.jmeter.threads.JMeterContext;
 import org.apache.jmeter.threads.JMeterContextService;
@@ -55,15 +60,76 @@ public class GherkinContext implements Closeable {
 		return gherkinContext;
 	}
 
-	private final JMeterVariables vars;
+	public static final class Variables {
+
+		private final JMeterVariables vars;
+
+		private Variables(JMeterVariables vars) {
+			this.vars = Objects.requireNonNull(vars);
+		}
+
+		public String getThreadName() {
+			return this.vars.getThreadName();
+		}
+
+		public int getIteration() {
+			return this.vars.getIteration();
+		}
+
+		public void incIteration() {
+			this.vars.incIteration();
+		}
+
+		public Object remove(String key) {
+			return this.vars.remove(key);
+		}
+
+		public void put(String key, String value) {
+			this.vars.put(key, value);
+		}
+
+		public void putObject(String key, Object value) {
+			this.vars.putObject(key, value);
+		}
+
+		public void putAll(Map<String, ?> vars) {
+			this.vars.putAll(vars);
+		}
+
+		public void putAll(JMeterVariables vars) {
+			this.vars.putAll(vars);
+		}
+
+		public String get(String key) {
+			return this.vars.get(key);
+		}
+
+		public Object getObject(String key) {
+			return this.vars.getObject(key);
+		}
+
+		public Iterator<Entry<String, Object>> getIterator() {
+			return this.vars.getIterator();
+		}
+
+		public Set<Entry<String, Object>> entrySet() {
+			return this.vars.entrySet();
+		}
+
+		public boolean isSameUserOnNextIteration() {
+			return this.vars.isSameUserOnNextIteration();
+		}
+	}
+
+	private final Variables vars;
 	private final Environment env = new Environment(this::getVariable);
 
 	private GherkinContext(JMeterContext ctx) {
 		ctx = Optional.ofNullable(ctx).orElseGet(JMeterContextService::getContext);
-		this.vars = ctx.getVariables();
+		this.vars = new Variables(ctx.getVariables());
 	}
 
-	public JMeterVariables getVars() {
+	public Variables getVars() {
 		return this.vars;
 	}
 
