@@ -24,35 +24,17 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  *******************************************************************************/
-package com.armedia.commons.jmeter.gherkin.jbehave;
+package com.armedia.commons.jmeter.gherkin.config;
 
-import java.util.Map;
-import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.jbehave.core.io.StoryLoader;
+import com.armedia.commons.jmeter.gherkin.Gherkin;
 
-public final class MappedStoryLoader extends InterceptingStoryLoader {
+public abstract class GherkinEngine implements Gherkin, AutoCloseable {
 
-	private static Function<String, String> getMappingFunction(Map<String, String> m) {
-		if (m == null) { return null; }
-		return m::get;
-	}
+	protected final Logger log = LoggerFactory.getLogger(getClass());
 
-	public MappedStoryLoader(Map<String, String> resources) {
-		this(resources, null, null);
-
-	}
-
-	public MappedStoryLoader(Map<String, String> resources, StoryLoader fallback) {
-		this(resources, null, fallback);
-	}
-
-	public MappedStoryLoader(Map<String, String> resources, Map<String, String> stories) {
-		this(resources, stories, null);
-	}
-
-	public MappedStoryLoader(Map<String, String> resources, Map<String, String> stories, StoryLoader fallback) {
-		super(MappedStoryLoader.getMappingFunction(resources), MappedStoryLoader.getMappingFunction(stories), fallback);
-	}
+	public abstract void init(GherkinConfig config) throws Exception;
 
 }

@@ -24,8 +24,29 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  *******************************************************************************/
-package com.armedia.commons.jmeter.gherkin.jmeter.steps;
+package com.armedia.commons.jmeter.gherkin.impl.jbehave.steps.example;
 
-public class CommonTools {
+import org.jbehave.core.annotations.Given;
+import org.jbehave.core.annotations.Then;
+import org.jbehave.core.annotations.When;
+
+import com.armedia.commons.jmeter.gherkin.impl.jbehave.steps.BasicSteps;
+
+public class Steps2 extends BasicSteps {
+
+	@Given("this is the second test")
+	public void given() throws Throwable {
+		"".hashCode();
+	}
+
+	@When("we want to debug the second test")
+	public void when() throws Throwable {
+		"".hashCode();
+	}
+
+	@Then("start debugging the second test")
+	public void then() throws Throwable {
+		"".hashCode();
+	}
 
 }

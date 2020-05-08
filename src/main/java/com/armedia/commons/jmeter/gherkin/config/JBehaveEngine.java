@@ -24,7 +24,7 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  *******************************************************************************/
-package com.armedia.commons.jmeter.gherkin.jmeter.config;
+package com.armedia.commons.jmeter.gherkin.config;
 
 import java.io.LineNumberReader;
 import java.io.StringReader;
@@ -37,9 +37,9 @@ import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.armedia.commons.jmeter.gherkin.jbehave.JBehaveRunner;
-import com.armedia.commons.jmeter.gherkin.jbehave.JBehaveSettings;
-import com.armedia.commons.jmeter.gherkin.jmeter.GherkinTools;
+import com.armedia.commons.jmeter.gherkin.GherkinTools;
+import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveRunner;
+import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveSettings;
 
 class JBehaveEngine extends GherkinEngine {
 

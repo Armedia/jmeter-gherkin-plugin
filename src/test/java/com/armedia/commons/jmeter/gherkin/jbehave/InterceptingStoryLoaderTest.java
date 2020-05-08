@@ -33,6 +33,8 @@ import org.jbehave.core.io.StoryLoader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.armedia.commons.jmeter.gherkin.impl.jbehave.InterceptingStoryLoader;
+
 public class InterceptingStoryLoaderTest {
 
 	@Test

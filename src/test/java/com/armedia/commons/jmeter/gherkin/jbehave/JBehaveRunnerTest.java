@@ -36,7 +36,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jbehave.core.io.LoadFromClasspath;
 import org.junit.jupiter.api.Test;
 
-import com.armedia.commons.jmeter.gherkin.jbehave.JBehaveRunner.Result;
+import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveRunner;
+import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveRunner.Result;
 
 public class JBehaveRunnerTest {
 	private static final String TEST1 = "" + //

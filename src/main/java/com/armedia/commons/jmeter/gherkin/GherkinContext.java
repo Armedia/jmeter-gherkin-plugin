@@ -24,7 +24,7 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  *******************************************************************************/
-package com.armedia.commons.jmeter.gherkin.jmeter;
+package com.armedia.commons.jmeter.gherkin;
 
 import java.io.Closeable;
 import java.util.Iterator;
