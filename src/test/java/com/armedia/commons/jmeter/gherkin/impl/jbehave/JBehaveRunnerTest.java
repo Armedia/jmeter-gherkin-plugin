@@ -65,7 +65,7 @@ public class JBehaveRunnerTest {
 	@Test
 	public void test() {
 
-		String example = new LoadFromClasspath().loadStoryAsText("com/arkcase/sim/scripts/example.story");
+		String example = new LoadFromClasspath().loadStoryAsText("com/armedia/commons/jmeter/scripts/example.story");
 
 		List<Pair<String, ?>> tests = Arrays.asList(Pair.of("Test1", JBehaveRunnerTest.TEST1), //
 			Pair.of("Test2", JBehaveRunnerTest.TEST2), //
