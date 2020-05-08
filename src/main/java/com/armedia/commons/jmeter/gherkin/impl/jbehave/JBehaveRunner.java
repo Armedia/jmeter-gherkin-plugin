@@ -74,7 +74,6 @@ import org.slf4j.LoggerFactory;
 
 import com.armedia.commons.jmeter.gherkin.Gherkin;
 import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveSettings.Syntax;
-import com.armedia.commons.jmeter.gherkin.impl.jbehave.steps.BasicSteps;
 
 public class JBehaveRunner {
 	private static final Logger LOG = LoggerFactory.getLogger(JBehaveRunner.class);
@@ -170,7 +169,7 @@ public class JBehaveRunner {
 			Map<Class<?>, Constructor<?>> constructors = new HashMap<>();
 			Set<String> finalPrefixes = new LinkedHashSet<>();
 			// Add this always, for now...
-			finalPrefixes.add(BasicSteps.class.getPackage().getName());
+			finalPrefixes.add(JBehaveRunner.class.getPackage().getName());
 			finalPrefixes.addAll(prefixes);
 
 			for (Class<?> klazz : new Reflections(finalPrefixes).getTypesAnnotatedWith(Gherkin.Steps.class)) {
