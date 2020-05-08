@@ -24,7 +24,7 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  *******************************************************************************/
-package com.armedia.commons.jmeter.gherkin.impl.jbehave;
+package com.armedia.commons.jmeter.gherkin.jbehave;
 
 import java.util.Map;
 import java.util.function.Function;

@@ -50,8 +50,8 @@ import org.slf4j.LoggerFactory;
 
 import com.armedia.commons.jmeter.gherkin.Gherkin;
 import com.armedia.commons.jmeter.gherkin.GherkinContext;
-import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveSettings.OutputFormat;
-import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveSettings.Syntax;
+import com.armedia.commons.jmeter.gherkin.jbehave.JBehaveSettings.OutputFormat;
+import com.armedia.commons.jmeter.gherkin.jbehave.JBehaveSettings.Syntax;
 import com.armedia.commons.jmeter.tools.JSR223Script;
 
 public class GherkinConfig extends ConfigTestElement implements LoopIterationListener, ThreadListener {

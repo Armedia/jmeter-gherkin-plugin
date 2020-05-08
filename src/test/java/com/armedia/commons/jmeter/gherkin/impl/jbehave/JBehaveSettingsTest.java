@@ -34,8 +34,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveSettings.OutputFormat;
-import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveSettings.Syntax;
+import com.armedia.commons.jmeter.gherkin.jbehave.JBehaveSettings;
+import com.armedia.commons.jmeter.gherkin.jbehave.JBehaveSettings.OutputFormat;
+import com.armedia.commons.jmeter.gherkin.jbehave.JBehaveSettings.Syntax;
 
 class JBehaveSettingsTest {
 

@@ -38,8 +38,8 @@ import java.util.function.Predicate;
 import org.apache.commons.lang3.StringUtils;
 
 import com.armedia.commons.jmeter.gherkin.GherkinTools;
-import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveRunner;
-import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveSettings;
+import com.armedia.commons.jmeter.gherkin.jbehave.JBehaveRunner;
+import com.armedia.commons.jmeter.gherkin.jbehave.JBehaveSettings;
 
 class JBehaveEngine extends GherkinEngine {
 

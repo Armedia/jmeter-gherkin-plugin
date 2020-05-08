@@ -24,7 +24,7 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  *******************************************************************************/
-package com.armedia.commons.jmeter.gherkin.impl.jbehave;
+package com.armedia.commons.jmeter.gherkin.jbehave;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -73,7 +73,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.armedia.commons.jmeter.gherkin.Gherkin;
-import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveSettings.Syntax;
+import com.armedia.commons.jmeter.gherkin.jbehave.JBehaveSettings.Syntax;
 
 public class JBehaveRunner {
 	private static final Logger LOG = LoggerFactory.getLogger(JBehaveRunner.class);
