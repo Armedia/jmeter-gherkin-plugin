@@ -24,7 +24,7 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  *******************************************************************************/
-package com.armedia.commons.jmeter.gherkin.impl.jbehave;
+package com.armedia.commons.jmeter.gherkin.jbehave;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,7 +36,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jbehave.core.io.LoadFromClasspath;
 import org.junit.jupiter.api.Test;
 
-import com.armedia.commons.jmeter.gherkin.jbehave.JBehaveRunner;
 import com.armedia.commons.jmeter.gherkin.jbehave.JBehaveRunner.Result;
 
 public class JBehaveRunnerTest {
