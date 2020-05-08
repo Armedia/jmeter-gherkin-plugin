@@ -44,12 +44,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.codehaus.plexus.util.IOUtil;
 import org.jbehave.core.annotations.Given;
@@ -73,6 +74,7 @@ import org.slf4j.LoggerFactory;
 
 import com.armedia.commons.jmeter.gherkin.Gherkin;
 import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveSettings.Syntax;
+import com.armedia.commons.jmeter.gherkin.impl.jbehave.steps.BasicSteps;
 
 public class JBehaveRunner {
 	private static final Logger LOG = LoggerFactory.getLogger(JBehaveRunner.class);
@@ -119,7 +121,6 @@ public class JBehaveRunner {
 
 		private static final Package ANNOTATION_PACKAGE = Given.class.getPackage();
 
-		private final Logger log = LoggerFactory.getLogger(getClass());
 		private final Map<Class<?>, Constructor<?>> constructors;
 
 		private static Constructor<?> getConstructor(Class<?> c) {
@@ -164,40 +165,18 @@ public class JBehaveRunner {
 			}
 		}
 
-		private StepsFactory(Collection<String> searchScopes, Configuration configuration) {
+		private StepsFactory(Collection<String> prefixes, Configuration configuration) {
 			super(configuration);
 			Map<Class<?>, Constructor<?>> constructors = new HashMap<>();
-			Map<String, Boolean> searched = new HashMap<>();
-			List<String> finalScopes = new ArrayList<>(searchScopes.size() + 1);
-			for (String s : searchScopes) {
-				boolean recursive = StringUtils.endsWith(s, ".*");
-				s = s.substring(0, s.length() - 3);
-				Package p = Package.getPackage(s);
-				if (p == null) {
-					this.log.warn("Package [{}] not found, skipping", s);
-					continue;
-				}
-
-				Boolean previous = searched.get(p.getName());
-				if ((previous != null) && (previous.booleanValue() || (previous.booleanValue() == recursive))) {
-					// If either the previous scan was recursive, or both are non-recursive
-					// and thus repetitive
-					continue;
-				}
-
-				// Either there was no previous scan, or the previous scan wasn't recursive
-				// and this one is...
-				finalScopes.add(s);
-				searched.put(s, recursive);
-			}
-
+			Set<String> finalPrefixes = new LinkedHashSet<>();
 			// Add this always, for now...
-			finalScopes.add(0, JBehaveRunner.class.getPackage().getName());
+			finalPrefixes.add(BasicSteps.class.getPackage().getName());
+			finalPrefixes.addAll(prefixes);
 
-			for (Class<?> c : new Reflections(finalScopes).getTypesAnnotatedWith(Gherkin.Steps.class)) {
-				Constructor<?> C = StepsFactory.getConstructor(c);
-				if (C != null) {
-					constructors.put(c, C);
+			for (Class<?> klazz : new Reflections(finalPrefixes).getTypesAnnotatedWith(Gherkin.Steps.class)) {
+				Constructor<?> constructor = StepsFactory.getConstructor(klazz);
+				if (constructor != null) {
+					constructors.put(klazz, constructor);
 				}
 			}
 
