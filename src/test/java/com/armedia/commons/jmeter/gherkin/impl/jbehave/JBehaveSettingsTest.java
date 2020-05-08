@@ -24,7 +24,7 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package com.armedia.commons.jmeter.gherkin.jbehave;
+package com.armedia.commons.jmeter.gherkin.impl.jbehave;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +34,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveSettings;
 import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveSettings.OutputFormat;
 import com.armedia.commons.jmeter.gherkin.impl.jbehave.JBehaveSettings.Syntax;
 

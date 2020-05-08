@@ -24,7 +24,7 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  *******************************************************************************/
-package com.armedia.commons.jmeter.gherkin.jbehave;
+package com.armedia.commons.jmeter.gherkin.impl.jbehave;
 
 import java.util.function.Function;
 
@@ -32,8 +32,6 @@ import org.easymock.EasyMock;
 import org.jbehave.core.io.StoryLoader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import com.armedia.commons.jmeter.gherkin.impl.jbehave.InterceptingStoryLoader;
 
 public class InterceptingStoryLoaderTest {
 
