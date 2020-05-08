@@ -24,7 +24,7 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  *******************************************************************************/
-package com.armedia.commons.jmeter.gherkin.config.gui;
+package com.armedia.commons.jmeter.plugins.gherkin.config.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -58,8 +58,8 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.armedia.commons.jmeter.gherkin.config.GherkinConfig;
-import com.armedia.commons.jmeter.gherkin.config.GherkinConfig.Script;
+import com.armedia.commons.jmeter.plugins.gherkin.config.GherkinConfig;
+import com.armedia.commons.jmeter.plugins.gherkin.config.GherkinConfig.Script;
 import com.armedia.commons.jmeter.tools.JSR223Script;
 
 public class GherkinConfigGui extends AbstractConfigGui implements ItemListener {

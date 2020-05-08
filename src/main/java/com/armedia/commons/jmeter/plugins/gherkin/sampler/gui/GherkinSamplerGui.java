@@ -24,7 +24,7 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  *******************************************************************************/
-package com.armedia.commons.jmeter.gherkin.sampler.gui;
+package com.armedia.commons.jmeter.plugins.gherkin.sampler.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Event;
@@ -59,7 +59,7 @@ import org.apache.jmeter.testelement.TestElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.armedia.commons.jmeter.gherkin.sampler.GherkinSampler;
+import com.armedia.commons.jmeter.plugins.gherkin.sampler.GherkinSampler;
 
 public class GherkinSamplerGui extends AbstractSamplerGui {
 	private static final long serialVersionUID = 1L;

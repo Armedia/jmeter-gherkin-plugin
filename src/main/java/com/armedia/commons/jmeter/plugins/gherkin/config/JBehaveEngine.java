@@ -24,7 +24,7 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  *******************************************************************************/
-package com.armedia.commons.jmeter.gherkin.config;
+package com.armedia.commons.jmeter.plugins.gherkin.config;
 
 import java.io.LineNumberReader;
 import java.io.StringReader;
