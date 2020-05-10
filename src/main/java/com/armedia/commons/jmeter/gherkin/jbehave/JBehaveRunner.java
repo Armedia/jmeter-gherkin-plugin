@@ -5,21 +5,21 @@
  * Copyright (C) 2020 Armedia, LLC
  * %%
  * This file is part of the Armedia JMeter Gherkin Plugin software.
- * 
+ *
  * If the software was purchased under a paid Armedia JMeter Gherkin Plugin
  * license, the terms of the paid license agreement will prevail.  Otherwise,
  * the software is provided under the following open source license terms:
- * 
+ *
  * Armedia JMeter Gherkin Plugin is free software: you can redistribute it
  * and/or modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Armedia JMeter Gherkin Plugin is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Armedia JMeter Gherkin Plugin. If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -27,6 +27,7 @@
 package com.armedia.commons.jmeter.gherkin.jbehave;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -116,11 +117,13 @@ public class JBehaveRunner {
 		new ParameterConverters.VerbatimConverter() //
 	);
 
-	private static final class StepsFactory extends AbstractStepsFactory {
+	private static final class StepsFactory extends AbstractStepsFactory implements Closeable {
 
 		private static final Package ANNOTATION_PACKAGE = Given.class.getPackage();
 
 		private final Map<Class<?>, Constructor<?>> constructors;
+
+		private final ThreadLocal<Map<Class<?>, Object>> instances = ThreadLocal.withInitial(LinkedHashMap::new);
 
 		private static Constructor<?> getConstructor(Class<?> c) {
 			// Skip interfaces
@@ -182,8 +185,7 @@ public class JBehaveRunner {
 			this.constructors = Collections.unmodifiableMap(constructors);
 		}
 
-		@Override
-		public Object createInstanceOfType(Class<?> klazz) {
+		private Object newInstance(Class<?> klazz) {
 			Constructor<?> c = this.constructors
 				.get(Objects.requireNonNull(klazz, "Must provide a class for the new instance"));
 			if (c == null) {
@@ -198,8 +200,19 @@ public class JBehaveRunner {
 		}
 
 		@Override
+		public Object createInstanceOfType(Class<?> klazz) {
+			return this.instances.get().computeIfAbsent(klazz, this::newInstance);
+		}
+
+		@Override
 		protected List<Class<?>> stepsTypes() {
 			return new ArrayList<>(this.constructors.keySet());
+		}
+
+		@Override
+		public void close() {
+			// Flush out the instances created for this thread
+			this.instances.remove();
 		}
 	}
 
@@ -287,6 +300,8 @@ public class JBehaveRunner {
 			return new Result(story, baos.toString(charset.name()), failures);
 		} catch (IOException e) {
 			throw new UncheckedIOException("Unexpected IOException writing to memory", e);
+		} finally {
+			this.stepsFactory.close();
 		}
 	}
 
