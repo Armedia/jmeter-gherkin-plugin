@@ -27,7 +27,6 @@
 package com.armedia.commons.jmeter.gherkin.jbehave;
 
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -50,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -117,13 +117,10 @@ public class JBehaveRunner {
 		new ParameterConverters.VerbatimConverter() //
 	);
 
-	private static final class StepsFactory extends AbstractStepsFactory implements Closeable {
-
+	private static final class StepScanner {
 		private static final Package ANNOTATION_PACKAGE = Given.class.getPackage();
 
 		private final Map<Class<?>, Constructor<?>> constructors;
-
-		private final ThreadLocal<Map<Class<?>, Object>> instances = ThreadLocal.withInitial(LinkedHashMap::new);
 
 		private static Constructor<?> getConstructor(Class<?> c) {
 			// Skip interfaces
@@ -142,7 +139,7 @@ public class JBehaveRunner {
 			for (Method m : c.getMethods()) {
 				for (Annotation a : m.getAnnotations()) {
 					Class<? extends Annotation> type = a.annotationType();
-					if (Objects.equals(StepsFactory.ANNOTATION_PACKAGE, type.getPackage())) {
+					if (Objects.equals(StepScanner.ANNOTATION_PACKAGE, type.getPackage())) {
 						include = true;
 						break;
 					}
@@ -167,8 +164,7 @@ public class JBehaveRunner {
 			}
 		}
 
-		private StepsFactory(Collection<String> prefixes, Configuration configuration) {
-			super(configuration);
+		private StepScanner(Collection<String> prefixes) {
 			Map<Class<?>, Constructor<?>> constructors = new HashMap<>();
 			Set<String> finalPrefixes = new LinkedHashSet<>();
 			// Add this always, for now...
@@ -176,7 +172,7 @@ public class JBehaveRunner {
 			finalPrefixes.addAll(prefixes);
 
 			for (Class<?> klazz : new Reflections(finalPrefixes).getTypesAnnotatedWith(Gherkin.Steps.class)) {
-				Constructor<?> constructor = StepsFactory.getConstructor(klazz);
+				Constructor<?> constructor = StepScanner.getConstructor(klazz);
 				if (constructor != null) {
 					constructors.put(klazz, constructor);
 				}
@@ -185,9 +181,32 @@ public class JBehaveRunner {
 			this.constructors = Collections.unmodifiableMap(constructors);
 		}
 
+		public Set<Class<?>> getStepTypes() {
+			return this.constructors.keySet();
+		}
+
+		public Constructor<?> get(Class<?> klazz) {
+			return this.constructors.get(klazz);
+		}
+	}
+
+	private static final class StepsFactory extends AbstractStepsFactory implements AutoCloseable {
+
+		private final Function<Class<?>, Constructor<?>> constructor;
+		private final Set<Class<?>> stepTypes;
+		private final Map<Class<?>, Object> instances = new LinkedHashMap<>();
+
+		private StepsFactory(Configuration configuration, Set<Class<?>> stepTypes,
+			Function<Class<?>, Constructor<?>> constructor) {
+			super(configuration);
+			this.constructor = Objects.requireNonNull(constructor, "Must provide a constructor function");
+			this.stepTypes = Collections.unmodifiableSet(
+				new LinkedHashSet<>(Objects.requireNonNull(stepTypes, "Must provide the set of steps supported")));
+		}
+
 		private Object newInstance(Class<?> klazz) {
-			Constructor<?> c = this.constructors
-				.get(Objects.requireNonNull(klazz, "Must provide a class for the new instance"));
+			Constructor<?> c = this.constructor
+				.apply(Objects.requireNonNull(klazz, "Must provide a class for the new instance"));
 			if (c == null) {
 				throw new IllegalArgumentException(
 					"Class " + klazz.getCanonicalName() + " is not registered as a step provider");
@@ -201,18 +220,17 @@ public class JBehaveRunner {
 
 		@Override
 		public Object createInstanceOfType(Class<?> klazz) {
-			return this.instances.get().computeIfAbsent(klazz, this::newInstance);
+			return this.instances.computeIfAbsent(klazz, this::newInstance);
 		}
 
 		@Override
 		protected List<Class<?>> stepsTypes() {
-			return new ArrayList<>(this.constructors.keySet());
+			return new ArrayList<>(this.stepTypes);
 		}
 
 		@Override
 		public void close() {
-			// Flush out the instances created for this thread
-			this.instances.remove();
+			this.instances.clear();
 		}
 	}
 
@@ -243,7 +261,7 @@ public class JBehaveRunner {
 	}
 
 	private final Configuration configuration;
-	private final StepsFactory stepsFactory;
+	private final StepScanner stepScanner;
 	private final Map<String, String> composites;
 
 	public JBehaveRunner(Collection<String> searchScopes) {
@@ -265,7 +283,7 @@ public class JBehaveRunner {
 
 		// By using this class, we ensure that we can share state between steps used within a
 		// story such that they don't interfere across stories (new instances where applicable)
-		this.stepsFactory = new StepsFactory(searchScopes, this.configuration);
+		this.stepScanner = new StepScanner(searchScopes);
 	}
 
 	public Result run(Story story) {
@@ -284,15 +302,17 @@ public class JBehaveRunner {
 				//
 				;
 				configuration = settings.apply(configuration, out);
-
-				PerformableTree tree = new PerformableTree();
-				PerformableTree.RunContext ctx = tree.newRunContext(configuration,
-					this.stepsFactory.createCandidateSteps(), new PrintStreamEmbedderMonitor(), new MetaFilter(),
-					failures);
-				List<Story> stories = Collections.singletonList(story);
-				tree.addStories(ctx, stories);
-				for (Story s : stories) {
-					tree.perform(ctx, s);
+				try (StepsFactory stepsFactory = new StepsFactory(configuration, this.stepScanner.getStepTypes(),
+					this.stepScanner::get)) {
+					PerformableTree tree = new PerformableTree();
+					PerformableTree.RunContext ctx = tree.newRunContext(configuration,
+						stepsFactory.createCandidateSteps(), new PrintStreamEmbedderMonitor(), new MetaFilter(),
+						failures);
+					List<Story> stories = Collections.singletonList(story);
+					tree.addStories(ctx, stories);
+					for (Story s : stories) {
+						tree.perform(ctx, s);
+					}
 				}
 				out.flush();
 			}
@@ -300,8 +320,6 @@ public class JBehaveRunner {
 			return new Result(story, baos.toString(charset.name()), failures);
 		} catch (IOException e) {
 			throw new UncheckedIOException("Unexpected IOException writing to memory", e);
-		} finally {
-			this.stepsFactory.close();
 		}
 	}
 
