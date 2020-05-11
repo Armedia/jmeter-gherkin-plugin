@@ -29,6 +29,9 @@ package com.armedia.commons.jmeter.gherkin.jbehave.steps;
 import java.time.Duration;
 
 import org.apache.jmeter.engine.StandardJMeterEngine;
+import org.jbehave.core.annotations.BeforeScenario;
+import org.jbehave.core.annotations.BeforeStories;
+import org.jbehave.core.annotations.BeforeStory;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Named;
 import org.jbehave.core.annotations.Then;
@@ -38,6 +41,17 @@ import com.armedia.commons.jmeter.gherkin.Gherkin;
 
 @Gherkin.Steps
 public class BasicSteps {
+
+	@BeforeStory
+	@BeforeStories
+	public void beforeStory() {
+		// TODO: Check to see if our interruption mode is story-level
+	}
+
+	@BeforeScenario
+	public void beforeScenario() {
+		// TODO: Check to see if our interruption mode is on scenario
+	}
 
 	@When("sleeping for $s seconds")
 	@Then("sleep for $s seconds")
