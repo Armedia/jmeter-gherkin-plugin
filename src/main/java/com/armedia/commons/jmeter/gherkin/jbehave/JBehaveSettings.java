@@ -5,21 +5,21 @@
  * Copyright (C) 2020 Armedia, LLC
  * %%
  * This file is part of the Armedia JMeter Gherkin Plugin software.
- * 
+ *
  * If the software was purchased under a paid Armedia JMeter Gherkin Plugin
  * license, the terms of the paid license agreement will prevail.  Otherwise,
  * the software is provided under the following open source license terms:
- * 
+ *
  * Armedia JMeter Gherkin Plugin is free software: you can redistribute it
  * and/or modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Armedia JMeter Gherkin Plugin is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Armedia JMeter Gherkin Plugin. If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -28,6 +28,7 @@ package com.armedia.commons.jmeter.gherkin.jbehave;
 
 import java.io.PrintStream;
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -46,6 +47,9 @@ import org.jbehave.core.reporters.PrintStreamOutput;
 import org.jbehave.core.reporters.StoryReporterBuilder;
 import org.jbehave.core.reporters.TxtOutput;
 import org.jbehave.core.reporters.XmlOutput;
+import org.jbehave.core.steps.DelegatingStepMonitor;
+import org.jbehave.core.steps.NullStepMonitor;
+import org.jbehave.core.steps.StepMonitor;
 
 public class JBehaveSettings implements Serializable, Cloneable {
 	private static final long serialVersionUID = 1L;
@@ -195,6 +199,7 @@ public class JBehaveSettings implements Serializable, Cloneable {
 	private boolean failOnPending = JBehaveSettings.DEFAULT_FAIL_ON_PENDING;
 	private Syntax syntax = JBehaveSettings.DEFAULT_SYNTAX;
 	private OutputFormat outputFormat = JBehaveSettings.DEFAULT_OUTPUT_FORMAT;
+	private Runnable abortCheck = null;
 
 	static JBehaveSettings safe(JBehaveSettings settings) {
 		return (settings != null ? settings : JBehaveSettings.defaults());
@@ -215,6 +220,7 @@ public class JBehaveSettings implements Serializable, Cloneable {
 		this.failOnPending = other.failOnPending;
 		this.syntax = other.syntax;
 		this.outputFormat = other.outputFormat;
+		this.abortCheck = other.abortCheck;
 		return this;
 	}
 
@@ -258,13 +264,48 @@ public class JBehaveSettings implements Serializable, Cloneable {
 		return this;
 	}
 
+	public Runnable getAbortCheck() {
+		return this.abortCheck;
+	}
+
+	public JBehaveSettings setAbortCheck(Runnable abortCheck) {
+		this.abortCheck = abortCheck;
+		return this;
+	}
+
 	Configuration apply(Configuration configuration, PrintStream out) {
 		configuration = configuration.doDryRun(this.dryRun);
 		if (this.failOnPending) {
 			configuration = configuration //
 				.usePendingStepStrategy(new FailingUponPendingStep());
 		}
-		return this.outputFormat.setReportBuilder(configuration, out);
+		this.outputFormat.setReportBuilder(configuration, out);
+
+		if (this.abortCheck != null) {
+			StepMonitor stepMonitor = configuration.stepMonitor();
+			if (stepMonitor != null) {
+				stepMonitor = new DelegatingStepMonitor(stepMonitor) {
+					final Runnable abortCheck = JBehaveSettings.this.abortCheck;
+
+					@Override
+					public void beforePerforming(String step, boolean dryRun, Method method) {
+						this.abortCheck.run();
+						super.beforePerforming(step, dryRun, method);
+					}
+				};
+			} else {
+				stepMonitor = new NullStepMonitor() {
+					final Runnable abortCheck = JBehaveSettings.this.abortCheck;
+
+					@Override
+					public void beforePerforming(String step, boolean dryRun, Method method) {
+						this.abortCheck.run();
+					}
+				};
+			}
+			configuration.useStepMonitor(stepMonitor);
+		}
+		return configuration;
 	}
 
 	@Override

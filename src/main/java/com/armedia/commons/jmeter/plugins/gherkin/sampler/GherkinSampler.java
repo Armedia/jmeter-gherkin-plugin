@@ -5,21 +5,21 @@
  * Copyright (C) 2020 Armedia, LLC
  * %%
  * This file is part of the Armedia JMeter Gherkin Plugin software.
- * 
+ *
  * If the software was purchased under a paid Armedia JMeter Gherkin Plugin
  * license, the terms of the paid license agreement will prevail.  Otherwise,
  * the software is provided under the following open source license terms:
- * 
+ *
  * Armedia JMeter Gherkin Plugin is free software: you can redistribute it
  * and/or modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Armedia JMeter Gherkin Plugin is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Armedia JMeter Gherkin Plugin. If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -28,12 +28,14 @@ package com.armedia.commons.jmeter.plugins.gherkin.sampler;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.script.ScriptException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
+import org.apache.jmeter.samplers.Interruptible;
 import org.apache.jmeter.samplers.SampleResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +50,7 @@ import kg.apc.jmeter.JMeterPluginsUtils;
  * A Sampler that makes HTTP requests using a real browser (via. Selenium/WebDriver). It currently
  * provides a scripting mechanism via. Javascript to control the browser instance.
  */
-public class GherkinSampler extends AbstractSampler {
+public class GherkinSampler extends AbstractSampler implements Interruptible {
 	private static final long serialVersionUID = 1L;
 
 	private static final String[] NO_PARAMS = {};
@@ -70,6 +72,8 @@ public class GherkinSampler extends AbstractSampler {
 			"Then check for some consequence\n" + //
 			"" //
 	;
+
+	private final AtomicBoolean interrupted = new AtomicBoolean(false);
 
 	@Override
 	public SampleResult sample(Entry entry) {
@@ -100,7 +104,7 @@ public class GherkinSampler extends AbstractSampler {
 			if (StringUtils.isNotBlank(story)) {
 				sampleResult.sampleStart();
 				try {
-					gherkinResult = runner.runStory(getName(), getStory());
+					gherkinResult = runner.runStory(getName(), getStory(), this::checkInterrupted);
 				} finally {
 					sampleResult.sampleEnd();
 				}
@@ -159,5 +163,18 @@ public class GherkinSampler extends AbstractSampler {
 
 	private Gherkin getRunner() {
 		return GherkinConfig.getGherkin(getThreadContext());
+	}
+
+	private void checkInterrupted() {
+		if (this.interrupted.get()) {
+			//
+			throw new RuntimeException("The current sampler was interrupted");
+		}
+	}
+
+	@Override
+	public boolean interrupt() {
+		this.interrupted.set(true);
+		return true;
 	}
 }
