@@ -138,7 +138,7 @@ public final class JSR223Script {
 			if (String.class.isInstance(this.source)) {
 				return JSR223Script.getInstance(this.allowCompilation, this.language, this.source.toString());
 			}
-			if (InputStreamReader.class.isInstance(this.source)) {
+			if (InputStream.class.isInstance(this.source)) {
 				this.charset = JSR223Script.sanitize(this.charset);
 				this.source = new InputStreamReader(InputStream.class.cast(this.source), this.charset);
 			}
