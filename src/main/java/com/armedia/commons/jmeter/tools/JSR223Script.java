@@ -5,21 +5,21 @@
  * Copyright (C) 2020 Armedia, LLC
  * %%
  * This file is part of the Armedia JMeter Gherkin Plugin software.
- * 
+ *
  * If the software was purchased under a paid Armedia JMeter Gherkin Plugin
  * license, the terms of the paid license agreement will prevail.  Otherwise,
  * the software is provided under the following open source license terms:
- * 
+ *
  * Armedia JMeter Gherkin Plugin is free software: you can redistribute it
  * and/or modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * Armedia JMeter Gherkin Plugin is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Armedia JMeter Gherkin Plugin. If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.Serializable;
 import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -86,7 +87,7 @@ public final class JSR223Script {
 		;
 	}
 
-	private static final ConcurrentMap<String, JSR223Script> CACHE = new ConcurrentHashMap<>();
+	private static final ConcurrentMap<CacheKey, JSR223Script> CACHE = new ConcurrentHashMap<>();
 
 	public static class Builder {
 
@@ -154,6 +155,40 @@ public final class JSR223Script {
 		}
 	}
 
+	public static class CacheKey implements Serializable {
+		private static final long serialVersionUID = 1L;
+
+		private final String hash;
+
+		private CacheKey(String hash) {
+			this.hash = hash;
+		}
+
+		public String getHash() {
+			return this.hash;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.hash);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) { return true; }
+			if (obj == null) { return false; }
+			if (getClass() != obj.getClass()) { return false; }
+			CacheKey other = CacheKey.class.cast(obj);
+			if (!StringUtils.equalsIgnoreCase(this.hash, other.hash)) { return false; }
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "CacheKey[" + this.hash + "]";
+		}
+	}
+
 	private static ScriptEngineFactory getFactory(String language) {
 		language = StringUtils.lowerCase(language);
 		if (StringUtils.isBlank(language)) { return null; }
@@ -172,20 +207,21 @@ public final class JSR223Script {
 		return language;
 	}
 
-	private static Pair<String, String> computeKey(String language, Object source) throws ScriptException, IOException {
+	private static Pair<CacheKey, String> computeKey(String language, Object source)
+		throws ScriptException, IOException {
 		language = JSR223Script.sanitize(language);
 		if (String.class.isInstance(source)) {
-			return Pair.of(language + "#" + DigestUtils.sha256Hex(source.toString()), source.toString());
+			return Pair.of(new CacheKey(language + "#" + DigestUtils.sha256Hex(source.toString())), source.toString());
 		}
 		if (Path.class.isInstance(source)) {
-			return Pair.of(language + "@" + Path.class.cast(source).toRealPath().toUri(), null);
+			return Pair.of(new CacheKey(language + "@" + Path.class.cast(source).toRealPath().toUri()), null);
 		}
 
 		// Must be a reader, recurse after reading the contents
 		Reader r = Reader.class.cast(source);
 		String contents = IOUtils.toString(r);
 		// We've read the contents, so recurse with the string
-		Pair<String, String> p = JSR223Script.computeKey(language, contents);
+		Pair<CacheKey, String> p = JSR223Script.computeKey(language, contents);
 		return Pair.of(p.getKey(), contents);
 	}
 
@@ -199,7 +235,7 @@ public final class JSR223Script {
 		return JSR223Script.LANGUAGES;
 	}
 
-	public static String getCacheKey(String language, String script) throws ScriptException {
+	public static CacheKey getCacheKey(String language, String script) throws ScriptException {
 		try {
 			return JSR223Script.computeKey(language, script).getKey();
 		} catch (IOException e) {
@@ -207,19 +243,20 @@ public final class JSR223Script {
 		}
 	}
 
-	public static void purge(String cacheKey) {
+	public static void purge(CacheKey cacheKey) {
 		if (cacheKey != null) {
 			JSR223Script.CACHE.remove(cacheKey);
 		}
 	}
 
-	public static JSR223Script getInstance(String cacheKey) {
+	public static JSR223Script getInstance(CacheKey cacheKey) {
+		if (cacheKey == null) { return null; }
 		return JSR223Script.CACHE.get(cacheKey);
 	}
 
 	private static JSR223Script getInstance(boolean allowCompilation, String language, final String script)
 		throws ScriptException {
-		final Pair<String, String> key;
+		final Pair<CacheKey, String> key;
 		try {
 			key = JSR223Script.computeKey(language, script);
 		} catch (IOException e) {
@@ -241,7 +278,7 @@ public final class JSR223Script {
 
 	private static JSR223Script getInstance(boolean allowCompilation, String language, final Reader r)
 		throws ScriptException, IOException {
-		final Pair<String, String> key = JSR223Script.computeKey(language, r);
+		final Pair<CacheKey, String> key = JSR223Script.computeKey(language, r);
 		try {
 			return ConcurrentUtils.createIfAbsent(JSR223Script.CACHE, key.getKey(),
 				new ConcurrentInitializer<JSR223Script>() {
@@ -258,7 +295,7 @@ public final class JSR223Script {
 
 	private static JSR223Script getInstance(boolean allowCompilation, String language, Path source,
 		final Charset charset) throws ScriptException, IOException {
-		final Pair<String, String> key = JSR223Script.computeKey(language, source);
+		final Pair<CacheKey, String> key = JSR223Script.computeKey(language, source);
 		try {
 			return ConcurrentUtils.createIfAbsent(JSR223Script.CACHE, key.getKey(),
 				new ConcurrentInitializer<JSR223Script>() {
@@ -317,7 +354,7 @@ public final class JSR223Script {
 	}
 
 	private final boolean allowCompilation;
-	private final String cacheKey;
+	private final CacheKey cacheKey;
 	private final String language;
 	private final ScriptEngineFactory factory;
 	private final LazyInitializer<String> sourceCode;
@@ -330,7 +367,7 @@ public final class JSR223Script {
 
 	private volatile CompilationResult compilationResult = null;
 
-	private JSR223Script(boolean allowCompilation, String cacheKey, String language, final String script) {
+	private JSR223Script(boolean allowCompilation, CacheKey cacheKey, String language, final String script) {
 		this.allowCompilation = allowCompilation;
 		this.cacheKey = cacheKey;
 		this.language = StringUtils.lowerCase(language);
@@ -343,7 +380,7 @@ public final class JSR223Script {
 		};
 	}
 
-	private JSR223Script(boolean allowCompilation, String cacheKey, String language, Path source, Charset charset) {
+	private JSR223Script(boolean allowCompilation, CacheKey cacheKey, String language, Path source, Charset charset) {
 		this.allowCompilation = allowCompilation;
 		this.cacheKey = cacheKey;
 		this.language = StringUtils.lowerCase(language);
@@ -433,7 +470,7 @@ public final class JSR223Script {
 		}
 	}
 
-	public String getHash() {
+	public CacheKey getCacheKey() {
 		return this.cacheKey;
 	}
 
