@@ -172,6 +172,7 @@ public class GherkinConfig extends ConfigTestElement implements LoopIterationLis
 			// Execute the configuration script!
 			Object ret = new JSR223Script //
 				.Builder() //
+					.withAllowCompilation(isCompileIfPossible()) //
 					.withLanguage(script.getLanguage()) //
 					.withSource(script.getScript()) //
 					.build() //
