@@ -30,6 +30,7 @@ import java.time.Duration;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.engine.StandardJMeterEngine;
+import org.jbehave.core.annotations.Alias;
 import org.jbehave.core.annotations.BeforeScenario;
 import org.jbehave.core.annotations.BeforeStories;
 import org.jbehave.core.annotations.BeforeStory;
@@ -54,7 +55,6 @@ public class BasicSteps {
 		// TODO: Check to see if our interruption mode is on scenario
 	}
 
-	@When("sleeping for $s seconds")
 	@Then("sleep for $s seconds")
 	public void sleep(@Named("s") long seconds) throws InterruptedException {
 		if (seconds > 0) {
