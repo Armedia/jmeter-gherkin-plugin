@@ -86,6 +86,7 @@ public class BasicSteps {
 	}
 
 	@Then("stop the test now")
+	@Alias("stop the test immediately")
 	public void stopTestNow() {
 		StandardJMeterEngine.stopEngineNow();
 	}
