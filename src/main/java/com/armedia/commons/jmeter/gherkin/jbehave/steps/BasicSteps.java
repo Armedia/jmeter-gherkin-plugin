@@ -28,6 +28,7 @@ package com.armedia.commons.jmeter.gherkin.jbehave.steps;
 
 import java.time.Duration;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.engine.StandardJMeterEngine;
 import org.jbehave.core.annotations.BeforeScenario;
 import org.jbehave.core.annotations.BeforeStories;
@@ -67,6 +68,16 @@ public class BasicSteps {
 	public void debug() {
 		// This exists solely to put an easy-access breakpoint for debuggers
 		Thread.currentThread().hashCode();
+	}
+
+	@Then("fail")
+	public void raiseException() {
+		raiseException(null);
+	}
+
+	@Then("fail with the message [$message]")
+	public void raiseException(@Named("message") String message) {
+		throw (StringUtils.isBlank(message) ? new RuntimeException() : new RuntimeException(message));
 	}
 
 	@Then("stop the test")
