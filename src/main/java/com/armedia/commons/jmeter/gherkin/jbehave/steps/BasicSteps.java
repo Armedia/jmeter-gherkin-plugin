@@ -31,6 +31,7 @@ import java.time.Duration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.engine.StandardJMeterEngine;
 import org.jbehave.core.annotations.Alias;
+import org.jbehave.core.annotations.Aliases;
 import org.jbehave.core.annotations.BeforeScenario;
 import org.jbehave.core.annotations.BeforeStories;
 import org.jbehave.core.annotations.BeforeStory;
@@ -56,6 +57,13 @@ public class BasicSteps {
 	}
 
 	@Then("sleep for $s seconds")
+	@Aliases(values = {
+		"sleep for 1 second", //
+		"sleep for a second", //
+		"sleep for $s secs", //
+		"sleep for 1 sec", //
+		"sleep for a sec", //
+	})
 	public void sleep(@Named("s") long seconds) throws InterruptedException {
 		if (seconds > 0) {
 			Thread.sleep(Duration.ofSeconds(seconds).toMillis());
